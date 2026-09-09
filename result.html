@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analysis Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Resume Analysis Results</h1>
+            <a href="/" class="back-btn">← Analyze Another Resume</a>
+        </header>
+        
+        <div class="results-grid">
+            <!-- Personal Info -->
+            <div class="card personal-info">
+                <h3>👤 Personal Information</h3>
+                <p><strong>Name:</strong> {{ data.name }}</p>
+                <p><strong>Email:</strong> {{ data.email }}</p>
+            </div>
+            
+            <!-- ATS Score -->
+            <div class="card ats-score">
+                <h3>🎯 ATS Score for {{ data.selected_job }}</h3>
+                <div class="score-circle">
+                    <div class="circle" data-score="{{ data.ats_score }}">
+                        <div class="score-text">
+                            <span class="score">{{ data.ats_score }}%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="score-description">
+                    {% if data.ats_score >= 80 %}
+                    <p class="excellent">🟢 Excellent Match!</p>
+                    {% elif data.ats_score >= 60 %}
+                    <p class="good">🟡 Good Match</p>
+                    {% elif data.ats_score >= 40 %}
+                    <p class="fair">🟠 Fair Match</p>
+                    {% else %}
+                    <p class="poor">🔴 Needs Improvement</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Skills Found -->
+            <div class="card skills-found">
+                <h3>🛠️ Skills Extracted ({{ data.skills|length }})</h3>
+                <div class="skills-container">
+                    {% for skill in data.skills %}
+                    <span class="skill-tag">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Missing Skills -->
+            <div class="card missing-skills">
+                <h3>📈 Skills to Improve for {{ data.selected_job }}</h3>
+                {% if data.missing_skills %}
+                <div class="skills-container">
+                    {% for skill in data.missing_skills %}
+                    <span class="skill-tag missing">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="no-missing">🎉 You have all the required skills!</p>
+                {% endif %}
+            </div> 
+            
+            <!-- Job Recommendations -->
+            <div class="card job-recommendations">
+                <h3>💼 Top Job Recommendations</h3>
+                <div class="job-list">
+                    {% for job in data.job_recommendations %}
+                    <div class="job-item">
+                        <div class="job-header">
+                            <h4>{{ job.job_title }}</h4>
+                            <span class="match-percentage">{{ job.match_percentage }}% match</span>
+                        </div>
+                        <div class="matched-skills">
+                            <strong>Matching skills:</strong>
+                            {% for skill in job.matched_skills %}
+                            <span class="skill-tag small">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Required Skills for Selected Job -->
+            <div class="card required-skills">
+                <h3>📋 Required Skills for {{ data.selected_job }}</h3>
+                <div class="skills-container">
+                    {% for skill in data.required_skills %}
+                    {% if skill in data.skills %}
+                    <span class="skill-tag found">✓ {{ skill }}</span>
+                    {% else %}
+                    <span class="skill-tag missing">✗ {{ skill }}</span>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="/" class="btn secondary">🔄 Analyze Another Resume</a>
+            <button onclick="window.print()" class="btn primary">🖨️ Print Results</button>
+        </div>
+    </div>
+    
+    <script>
+        // Animate ATS Score Circle
+        document.addEventListener('DOMContentLoaded', function() {
+            const circle = document.querySelector('.circle');
+            const score = parseInt(circle.getAttribute('data-score'));
+            const circumference = 2 * Math.PI * 45; // radius = 45
+            
+            // Create SVG circle
+            const svg = document.createElementNS('[w3.org](http://www.w3.org/2000/svg)', 'svg');
+            svg.setAttribute('width', '120');
+            svg.setAttribute('height', '120');
+            
+            const circleElement = document.createElementNS('[w3.org](http://www.w3.org/2000/svg)', 'circle');
+            circleElement.setAttribute('cx', '60');
+            circleElement.setAttribute('cy', '60');
+            circleElement.setAttribute('r', '45');
+            circleElement.setAttribute('fill', 'none');
+            circleElement.setAttribute('stroke', '#e0e0e0');
+            circleElement.setAttribute('stroke-width', '8');
+            
+            const progressCircle = document.createElementNS('[w3.org](http://www.w3.org/2000/svg)', 'circle');
+            progressCircle.setAttribute('cx', '60');
+            progressCircle.setAttribute('cy', '60');
+            progressCircle.setAttribute('r', '45');
+            progressCircle.setAttribute('fill', 'none');
+            progressCircle.setAttribute('stroke', score >= 70 ? '#4CAF50' : score >= 40 ? '#FF9800' : '#f44336');
+            progressCircle.setAttribute('stroke-width', '8');
+            progressCircle.setAttribute('stroke-linecap', 'round');
+            progressCircle.setAttribute('stroke-dasharray', circumference);
+            progressCircle.setAttribute('stroke-dashoffset', circumference);
+            progressCircle.style.transition = 'stroke-dashoffset 2s ease-in-out';
+            
+            svg.appendChild(circleElement);
+            svg.appendChild(progressCircle);
+            circle.prepend(svg);
+            
+            // Animate the circle
+            setTimeout(() => {
+                const offset = circumference - (score / 100) * circumference;
+                progressCircle.setAttribute('stroke-dashoffset', offset);
+            }, 500);
+        });
+    </script>
+</body>
+</html>
