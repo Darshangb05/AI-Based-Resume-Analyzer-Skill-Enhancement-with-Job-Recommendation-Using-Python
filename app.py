@@ -33,14 +33,18 @@ import pandas as pd
 
 def load_job_data():
 
-    file_path = r"C:\Users\HP\Desktop\project 1\resume  analyzer\job_skills.csv"
+    import os
 
-    df = pd.read_csv(
-        file_path,
-        encoding='utf-8',
-        on_bad_lines='skip'
+def load_job_data():
+    csv_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "job_skills.csv"
     )
 
+    df = pd.read_csv(csv_path)
+
+    # Your existing processing below this line
+    ...
     print(df.head())
 
     jobs_data = {}
